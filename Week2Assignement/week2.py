@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.linear_model import LogisticRegression
 
 # Load data
 df = pd.read_csv("week2.csv", header=None)
@@ -26,3 +27,10 @@ plt.xlabel("x_1")
 plt.ylabel("x_2")
 plt.legend()
 plt.show()
+
+# (a)(ii)
+logistic_classifier = LogisticRegression(random_state=0).fit(
+  data[:, :2], 
+  data[:, 2])
+print("Logistic regression parameters:")
+print(logistic_classifier.coef_)
