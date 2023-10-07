@@ -58,7 +58,7 @@ def plot_classifier(pred, plot, decision_boundary_xs, decision_boundary_ys):
   # Plot positive predicted values
   plot.plot(data[pred == 1][:, 0], 
            data[pred == 1][:, 1],
-           marker="x",
+           marker="o",
            linestyle="None",
            color="green",
            label="+1 Predicted")
@@ -66,7 +66,7 @@ def plot_classifier(pred, plot, decision_boundary_xs, decision_boundary_ys):
   plot.plot(data[pred == -1][:, 0], 
            data[pred == -1][:, 1],
            linestyle="None",
-           marker="x",
+           marker="o",
            color="red",
            label="-1 Predicted")
 
