@@ -71,10 +71,9 @@ def plot_classifier(pred, plot, decision_boundary_xs, decision_boundary_ys):
            label="-1 Predicted")
 
   plot.plot(decision_boundary_xs, decision_boundary_ys)
-  plot.xlabel("x_1")
-  plot.ylabel("x_2")
+  plot.set_xlabel("x_1")
+  plot.set_ylabel("x_2")
   plot.legend()
-  plot.show()
 
 def calculate_linear_decision_boundary(classifier):
   # Plot decision boundary
@@ -86,7 +85,9 @@ def calculate_linear_decision_boundary(classifier):
 
 xs, ys = calculate_linear_decision_boundary(logistic_classifier)
 preds = logistic_classifier.predict(data[:, :2])
-plot_classifier(preds, plt, xs, ys)
+fig, ax = plt.subplots()
+plot_classifier(preds, ax, xs, ys)
+plt.show()
 
 # Part 2
 svm_classifiers = {}
@@ -99,10 +100,20 @@ for c_val in C_VALS:
   svm_classifiers[c_val] = classifier
 
 fig, axs = plt.subplots(3, 2)
+axs = axs.flat
+i = 0
 
 for c_val in svm_classifiers:
   classifier = svm_classifiers[c_val]
+  xs, ys = calculate_linear_decision_boundary(classifier)
+  preds = classifier.predict(data[:, :2])
+  plot_classifier(preds, axs[i], xs, ys)
+  axs[i].set_title("C = {}".format(c_val))
+  i += 1
+
   print("C = {}".format(c_val))
   print("Parameters: {}".format(classifier.coef_[0]))
   print("Intercept: {}".format(classifier.intercept_[0]))
   print()
+
+plt.show()
