@@ -97,7 +97,7 @@ svm_classifiers = {}
 C_VALS = [0.0001, 0.1, 1, 100]
 
 for c_val in C_VALS:
-  classifier = LinearSVC(C=c_val).fit(
+  classifier = LinearSVC(C=c_val, dual="auto").fit(
     data[:, :2], 
     data[:, 2])
   svm_classifiers[c_val] = classifier
