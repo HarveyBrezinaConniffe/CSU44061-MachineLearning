@@ -3,23 +3,27 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
+from sklearn.metrics import accuracy_score, classification_report
 
 # Load data
 df = pd.read_csv("week2.csv", header=None)
 data = np.array(df)
+X = data[:, :2]
+Y = data[:, 2]
 print(df.head())
+print()
 
 # (a)(i)
 # Plot positive values
-plt.plot(data[data[:, 2] == 1][:, 0], 
-         data[data[:, 2] == 1][:, 1],
+plt.plot(X[Y == 1][:, 0], 
+         X[Y == 1][:, 1],
          marker="+",
          linestyle="None",
          color="green",
          label="Target is +1")
 # Plot negative values
-plt.plot(data[data[:, 2] == -1][:, 0], 
-         data[data[:, 2] == -1][:, 1],
+plt.plot(X[Y == -1][:, 0], 
+         X[Y == -1][:, 1],
          linestyle="None",
          marker="+",
          color="red",
@@ -30,9 +34,10 @@ plt.legend()
 plt.show()
 
 # (a)(ii)
-logistic_classifier = LogisticRegression(penalty="none", random_state=0).fit(
-  data[:, :2], 
-  data[:, 2])
+logistic_classifier = LogisticRegression(penalty=None, random_state=0).fit(
+  X, 
+  Y)
+
 print("Logistic regression parameters:")
 print("Parameters: {}".format(logistic_classifier.coef_[0]))
 print("Intercept: {}".format(logistic_classifier.intercept_[0]))
@@ -42,30 +47,30 @@ print("Intercept: {}".format(logistic_classifier.intercept_[0]))
 
 def plot_classifier(pred, plot, decision_boundary_xs, decision_boundary_ys, legend=True):
   # Plot positive train values
-  plot.plot(data[data[:, 2] == 1][:, 0], 
-           data[data[:, 2] == 1][:, 1],
+  plot.plot(X[Y == 1][:, 0], 
+           X[Y == 1][:, 1],
            marker="+",
            linestyle="None",
            color="green",
            label="+1 Train")
   # Plot negative train values
-  plot.plot(data[data[:, 2] == -1][:, 0], 
-           data[data[:, 2] == -1][:, 1],
+  plot.plot(X[Y == -1][:, 0], 
+           X[Y == -1][:, 1],
            linestyle="None",
            marker="+",
            color="red",
            label="-1 Train")
   # Plot positive predicted values
-  plot.plot(data[pred == 1][:, 0], 
-           data[pred == 1][:, 1],
+  plot.plot(X[pred == 1][:, 0], 
+           X[pred == 1][:, 1],
            marker="o",
            linestyle="None",
            markeredgecolor="green",
            markerfacecolor="none",
            label="+1 Predicted")
   # Plot negative predicted values
-  plot.plot(data[pred == -1][:, 0], 
-           data[pred == -1][:, 1],
+  plot.plot(X[pred == -1][:, 0], 
+           X[pred == -1][:, 1],
            linestyle="None",
            marker="o",
            markeredgecolor="red",
@@ -87,9 +92,14 @@ def calculate_linear_decision_boundary(classifier):
   return X_POINTS, Y_POINTS
 
 xs, ys = calculate_linear_decision_boundary(logistic_classifier)
-preds = logistic_classifier.predict(data[:, :2])
+preds = logistic_classifier.predict(X)
 fig, ax = plt.subplots()
 plot_classifier(preds, ax, xs, ys)
+
+acc = accuracy_score(Y, preds)
+print("Train accuracy: {}".format(acc))
+print(classification_report(Y, preds))
+print()
 plt.show()
 
 # Part 2
@@ -98,8 +108,8 @@ C_VALS = [0.0001, 0.1, 1, 100]
 
 for c_val in C_VALS:
   classifier = LinearSVC(C=c_val, dual="auto").fit(
-    data[:, :2], 
-    data[:, 2])
+    X, 
+    Y)
   svm_classifiers[c_val] = classifier
 
 fig, axs = plt.subplots(2, 2)
@@ -110,7 +120,7 @@ i = 0
 for c_val in svm_classifiers:
   classifier = svm_classifiers[c_val]
   xs, ys = calculate_linear_decision_boundary(classifier)
-  preds = classifier.predict(data[:, :2])
+  preds = classifier.predict(X)
   plot_classifier(preds, axs[i], xs, ys, legend=False)
   axs[i].set_title("C = {}".format(c_val))
   i += 1
@@ -118,8 +128,16 @@ for c_val in svm_classifiers:
   print("C = {}".format(c_val))
   print("Parameters: {}".format(classifier.coef_[0]))
   print("Intercept: {}".format(classifier.intercept_[0]))
+  acc = accuracy_score(Y, preds)
+  print("Train accuracy: {}".format(acc))
+  print(classification_report(Y, preds))
   print()
 
 handles, labels = axs[-1].get_legend_handles_labels()
 fig.legend(handles, labels, loc='upper left')
 plt.show()
+
+# (C)
+data = np.insert(data, 2, data[:, 0]**2, axis=1)
+data = np.insert(data, 3, data[:, 1]**2, axis=1)
+
