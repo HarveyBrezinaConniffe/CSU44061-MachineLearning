@@ -40,7 +40,7 @@ print("Intercept: {}".format(logistic_classifier.intercept_[0]))
 # (a)(iii)
 # Generate predictions
 
-def plot_classifier(pred, plot, decision_boundary_xs, decision_boundary_ys):
+def plot_classifier(pred, plot, decision_boundary_xs, decision_boundary_ys, legend=True):
   # Plot positive train values
   plot.plot(data[data[:, 2] == 1][:, 0], 
            data[data[:, 2] == 1][:, 1],
@@ -60,20 +60,23 @@ def plot_classifier(pred, plot, decision_boundary_xs, decision_boundary_ys):
            data[pred == 1][:, 1],
            marker="o",
            linestyle="None",
-           color="green",
+           markeredgecolor="green",
+           markerfacecolor="none",
            label="+1 Predicted")
   # Plot negative predicted values
   plot.plot(data[pred == -1][:, 0], 
            data[pred == -1][:, 1],
            linestyle="None",
            marker="o",
-           color="red",
+           markeredgecolor="red",
+           markerfacecolor="none",
            label="-1 Predicted")
 
   plot.plot(decision_boundary_xs, decision_boundary_ys)
   plot.set_xlabel("x_1")
   plot.set_ylabel("x_2")
-  plot.legend()
+  if legend:
+    plot.legend(loc="upper left")
 
 def calculate_linear_decision_boundary(classifier):
   # Plot decision boundary
@@ -91,7 +94,7 @@ plt.show()
 
 # Part 2
 svm_classifiers = {}
-C_VALS = [0.001, 0.01, 0.1, 1, 10, 100]
+C_VALS = [0.0001, 0.1, 1, 100]
 
 for c_val in C_VALS:
   classifier = LinearSVC(C=c_val).fit(
@@ -99,7 +102,8 @@ for c_val in C_VALS:
     data[:, 2])
   svm_classifiers[c_val] = classifier
 
-fig, axs = plt.subplots(3, 2)
+fig, axs = plt.subplots(2, 2)
+fig.tight_layout()
 axs = axs.flat
 i = 0
 
@@ -107,7 +111,7 @@ for c_val in svm_classifiers:
   classifier = svm_classifiers[c_val]
   xs, ys = calculate_linear_decision_boundary(classifier)
   preds = classifier.predict(data[:, :2])
-  plot_classifier(preds, axs[i], xs, ys)
+  plot_classifier(preds, axs[i], xs, ys, legend=False)
   axs[i].set_title("C = {}".format(c_val))
   i += 1
 
@@ -116,4 +120,6 @@ for c_val in svm_classifiers:
   print("Intercept: {}".format(classifier.intercept_[0]))
   print()
 
+handles, labels = axs[-1].get_legend_handles_labels()
+fig.legend(handles, labels, loc='upper left')
 plt.show()
