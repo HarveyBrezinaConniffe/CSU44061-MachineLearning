@@ -49,19 +49,21 @@ def test_logistic_parameter_config(X, Y, C, max_poly_order, folds=5):
   poly = PolynomialFeatures(max_poly_order, include_bias=False)
   extended_X = poly.fit_transform(X)
 
+  classifiers = []
   scores = []
 
   for train_idxs, test_idxs in folder.split(extended_X):
     trainX, trainY = extended_X[train_idxs], Y[train_idxs]
     testX, testY   = extended_X[test_idxs],  Y[test_idxs]
 
-    classifier = LogisticRegression(random_state=0, penalty="l2", C=C).fit(trainX, trainY)  
+    classifier = LogisticRegression(random_state=0, max_iter=1000, penalty="l2", C=C).fit(trainX, trainY)  
+    classifiers.append(classifier)
     test_preds = classifier.predict(testX)
     f1 = f1_score(testY, test_preds, average='binary')
     scores.append(f1)
 
   scores = np.array(scores)
-  return scores.mean(), scores.std()
+  return scores.mean(), scores.std(), classifiers
 
 # Load first dataset
 df = pd.read_csv("dataset1.csv", header=None)
@@ -72,4 +74,35 @@ Y = data[:, 2]
 # Plot dataset
 plot_dataset(X, Y)
 print_dataset_stats(X, Y)
-print(test_logistic_parameter_config(X, Y, 0.5, 5))
+
+def plot_hyperparameter_vals(C_VALS, POLY_ORDERS, COLORS):
+  poly_orders_to_f1_means = {}
+  poly_orders_to_f1_std   = {}
+
+  for POLY_ORDER in POLY_ORDERS:
+    poly_orders_to_f1_means[POLY_ORDER] = []
+    poly_orders_to_f1_std[POLY_ORDER] = []
+    for C_VAL in C_VALS:
+      f1_mean, f1_std, classifiers = test_logistic_parameter_config(X, Y, C_VAL, POLY_ORDER)
+      poly_orders_to_f1_means[POLY_ORDER].append(f1_mean)
+      poly_orders_to_f1_std[POLY_ORDER].append(f1_std)
+
+  fig, ax = plt.subplots()
+  i = 0
+  lines = []
+  for POLY_ORDER in POLY_ORDERS:
+    f1_means = poly_orders_to_f1_means[POLY_ORDER]
+    f1_stds  = poly_orders_to_f1_std[POLY_ORDER]
+    lines.append(ax.errorbar(C_VALS, f1_means, yerr=f1_stds, color=COLORS[i]))
+    i += 1
+  ax.set_xlabel("C")
+  ax.set_ylabel("F1 Score")
+  ax.set_xscale("log")
+  ax.set_yscale("log")
+  ax.legend(lines, [f"Max Poly Order = {POLY_ORDER}" for POLY_ORDER in POLY_ORDERS])
+
+C_VALS = [0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000]
+POLY_ORDERS = [1, 2, 3, 4, 5]
+COLORS = [(0.5, 0, 0, 1), (0.5, 0.5, 0, 1), (0, 0.5, 0, 1), (0, 0.5, 0.5, 1), (0.5, 0, 0.5, 1)]
+plot_hyperparameter_vals(C_VALS, POLY_ORDERS, COLORS)
+plt.show()  
