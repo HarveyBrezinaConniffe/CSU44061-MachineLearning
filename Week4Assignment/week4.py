@@ -5,6 +5,7 @@ from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import KFold
 from sklearn.metrics import f1_score
+from sklearn.neighbors import KNeighborsClassifier
 
 def plot_dataset(X, Y):
   # Plot positive values
@@ -106,3 +107,86 @@ POLY_ORDERS = [1, 2, 3, 4, 5]
 COLORS = [(0.5, 0, 0, 1), (0.5, 0.5, 0, 1), (0, 0.5, 0, 1), (0, 0.5, 0.5, 1), (0.5, 0, 0.5, 1)]
 plot_hyperparameter_vals(C_VALS, POLY_ORDERS, COLORS)
 plt.show()  
+
+def plot_classifier(pred, plot, decision_boundary_xs=None, decision_boundary_ys=None, legend=True):
+  # Plot positive train values
+  plot.plot(X[Y == 1][:, 0], 
+           X[Y == 1][:, 1],
+           marker="+",
+           linestyle="None",
+           color="green",
+           label="+1 Train")
+  # Plot negative train values
+  plot.plot(X[Y == -1][:, 0], 
+           X[Y == -1][:, 1],
+           linestyle="None",
+           marker="+",
+           color="red",
+           label="-1 Train")
+  # Plot positive predicted values
+  plot.plot(X[pred == 1][:, 0], 
+           X[pred == 1][:, 1],
+           marker="o",
+           linestyle="None",
+           markeredgecolor="green",
+           markerfacecolor="none",
+           label="+1 Predicted")
+  # Plot negative predicted values
+  plot.plot(X[pred == -1][:, 0], 
+           X[pred == -1][:, 1],
+           linestyle="None",
+           marker="o",
+           markeredgecolor="red",
+           markerfacecolor="none",
+           label="-1 Predicted")
+
+  if decision_boundary_xs != None:
+    plot.plot(decision_boundary_xs, decision_boundary_ys)
+  plot.set_xlabel("x_1")
+  plot.set_ylabel("x_2")
+  if legend:
+    plot.legend(loc="upper left")
+
+poly = PolynomialFeatures(4, include_bias=False)
+extended_X = poly.fit_transform(X)
+logistic_classifier = LogisticRegression(random_state=0, max_iter=1000, penalty="l2", C=100).fit(extended_X, Y)  
+preds = logistic_classifier.predict(extended_X)
+
+fig, ax = plt.subplots()
+plot_classifier(preds, ax)
+plt.show()
+
+def test_knn_parameter_config(X, Y, k, folds=5):
+  folder =  KFold(n_splits=folds)
+
+  classifiers = []
+  scores = []
+
+  for train_idxs, test_idxs in folder.split(X):
+    trainX, trainY = X[train_idxs], Y[train_idxs]
+    testX, testY   = X[test_idxs],  Y[test_idxs]
+
+    classifier = KNeighborsClassifier(n_neighbors=k).fit(trainX, trainY)  
+    classifiers.append(classifier)
+    test_preds = classifier.predict(testX)
+    f1 = f1_score(testY, test_preds, average='binary')
+    scores.append(f1)
+
+  scores = np.array(scores)
+  return scores.mean(), scores.std(), classifiers
+
+K_VALS = [1, 2, 3, 4, 5, 6, 7, 8]
+f1_means = []
+f1_stds  = []
+
+for K in K_VALS:
+  f1_mean, f1_std, _ = test_knn_parameter_config(X, Y, K, folds=5)
+  f1_means.append(f1_mean)
+  f1_stds.append(f1_std)
+
+fig, ax = plt.subplots()
+ax.errorbar(K_VALS, f1_means, yerr=f1_stds)
+ax.set_xlabel("K")
+ax.set_ylabel("F1 Score")
+ax.set_yscale("log")
+plt.show()
