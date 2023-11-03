@@ -70,7 +70,8 @@ def test_logistic_parameter_config(X, Y, C, max_poly_order, folds=5):
   return scores.mean(), scores.std(), classifiers
 
 # Load first dataset
-df = pd.read_csv("dataset1.csv", header=None)
+dataset_file = "dataset2.csv"
+df = pd.read_csv(dataset_file, header=None)
 data = np.array(df)
 X = data[:, :2]
 Y = data[:, 2]
@@ -150,9 +151,9 @@ def plot_classifier(pred, plot, decision_boundary_xs=None, decision_boundary_ys=
   if legend:
     plot.legend(loc="upper left")
 
-poly = PolynomialFeatures(4, include_bias=False)
+poly = PolynomialFeatures(2, include_bias=False)
 extended_X = poly.fit_transform(X)
-logistic_classifier = LogisticRegression(random_state=0, max_iter=1000, penalty="l2", C=100).fit(extended_X, Y)  
+logistic_classifier = LogisticRegression(random_state=0, max_iter=1000, penalty="l2", C=0.0001).fit(extended_X, Y)  
 preds = logistic_classifier.predict(extended_X)
 
 fig, ax = plt.subplots()
@@ -194,7 +195,7 @@ ax.set_ylabel("F1 Score")
 ax.set_yscale("log")
 plt.show()
 
-knn_classifier = KNeighborsClassifier(n_neighbors=5).fit(X, Y)
+knn_classifier = KNeighborsClassifier(n_neighbors=7).fit(X, Y)
 knn_preds = knn_classifier.predict(X)
 
 fig, ax = plt.subplots()
