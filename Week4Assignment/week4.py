@@ -6,6 +6,9 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import KFold
 from sklearn.metrics import f1_score
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.dummy import DummyClassifier
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn import metrics
 
 def plot_dataset(X, Y):
   # Plot positive values
@@ -189,4 +192,49 @@ ax.errorbar(K_VALS, f1_means, yerr=f1_stds)
 ax.set_xlabel("K")
 ax.set_ylabel("F1 Score")
 ax.set_yscale("log")
+plt.show()
+
+knn_classifier = KNeighborsClassifier(n_neighbors=5).fit(X, Y)
+knn_preds = knn_classifier.predict(X)
+
+fig, ax = plt.subplots()
+plot_classifier(knn_preds, ax)
+plt.show()
+
+most_frequent_classifier = DummyClassifier(strategy="most_frequent").fit(X, Y)
+most_frequent_preds = most_frequent_classifier.predict(X)
+
+# Plot confusion matrices
+print("Logistic Regression")
+cm = confusion_matrix(Y, preds)
+disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+disp.plot()
+plt.show()
+print(cm)
+
+print("KNN")
+cm = confusion_matrix(Y, knn_preds)
+disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+disp.plot()
+plt.show()
+print(cm)
+
+print("Most Frequent")
+cm = confusion_matrix(Y, most_frequent_preds)
+disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+disp.plot()
+plt.show()
+print(cm)
+
+# Plot ROC Curves
+lr_fpr, lr_tpr, lr_thresholds = metrics.roc_curve(Y, logistic_classifier.predict_proba(extended_X)[:, 1])
+knn_fpr, knn_tpr, knn_thresholds = metrics.roc_curve(Y, knn_classifier.predict_proba(X)[:, 1])
+mf_fpr, mf_tpr, mf_thresholds = metrics.roc_curve(Y, most_frequent_classifier.predict_proba(X)[:, 1])
+
+plt.plot(lr_fpr, lr_tpr, label="Logistic Regression ROC")
+plt.plot(knn_fpr, knn_tpr, label="KNN ROC")
+plt.plot(mf_fpr, mf_tpr, label="Baseline ROC")
+plt.xlabel("False Positive Rate")
+plt.ylabel("True Positive Rate")
+plt.legend()
 plt.show()
